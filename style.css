@@ -60,3 +60,8 @@ header, #message {
 .discovered {
     background-color: rgb(177, 177, 177);
 }
+
+footer {
+    margin-top: 2em;
+    text-align: center;
+}

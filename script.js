@@ -6,6 +6,7 @@ const CHEAT_REVEAL_ALL = false;
 const ROWS_COUNT = 10;
 const COLS_COUNT = 10;
 
+BOMBS_COUNT = 6
 var defeat = false;
 var victory = false;
 
@@ -27,9 +28,14 @@ for (var row = 0; row < ROWS_COUNT; row++) {
 
 //
 // TODO: Task 1 - add some bombs at fixed positions.
-// cells[0][1].isBomb = true;
-// cells[5][4].isBomb = true;
-// cells[9][9].isBomb = true;
+/* cells[0][0].isBomb = true;
+cells[1][7].isBomb = true;
+cells[4][9].isBomb = true;
+cells[9][9].isBomb = true;
+cells[8][2].isBomb = true;
+cells[9][2].isBomb = true; */
+
+
 
 //
 // TODO: Task 2 - Comment out the code of task 1. Instead of adding bombs in fixed places, add 10 of them in random places.
@@ -37,6 +43,13 @@ for (var row = 0; row < ROWS_COUNT; row++) {
 //                other constants.
 //
 
+for (let i = 0; i <= BOMBS_COUNT; i++) {
+  let row = Math.floor(Math.random() * 9)
+  let col = Math.floor(Math.random() * 9)
+  if (!cells[row][col].isBomb)  {
+    cells[row][col].isBomb = true
+  }
+}
 
 // Once the game has been initialized, we "render" it.
 render();
@@ -50,10 +63,41 @@ function discoverCell(row, col) {
   //
   // TODO: Task 5 - Reveal cells when clicked.
   //
+  // Prevent discovering if flagged
+  if (!cells[row][col].hasBeenFlagged) {
+    if (cells[row][col].isBomb) {
+      defeat = true
+    }
 
+    cells[row][col].discovered = true
+  
   //
   // TODO: Task 6 - Discover neighbor cells recursively, as long as there are no adjacent bombs to the current cell.
   //
+
+    if (countAdjacentBombs(row, col) === 0) {
+      
+      // reveal 3 upper cells
+      for (let c = col-1; c <= col+1; c++) {
+        if (0 <= c && c <= 9 && 0 <= row - 1 && row - 1 <= 9) {
+          cells[row-1][c].discovered=true
+        }
+      }
+
+      // reveal 2 side cells
+      if (0 <= col - 1 && col + 1 <= 9) {
+        cells[row][col-1].discovered=true
+        cells[row][col+1].discovered=true
+      }
+
+      // reveal 3 bottom cells
+      for (let c = col-1; c <= col+1; c++) {
+        if (0 <= c && c <= 9 && 0 <= row + 1 && row + 1 <= 9) {
+          cells[row + 1][c].discovered=true
+        }
+      }
+    }
+  }
 
   //
   // TODO: Task 8 - Implement defeat. If the player "discovers" a bomb (clicks on it without holding shift), set the variable defeat to true.
@@ -65,6 +109,10 @@ function flagCell(row, col) {
   // TODO: Task 7 - Implement flags. Flags allow the player to mark cells that they think contain a bomb.
   //                When clicking a cell and holding shift, function flagCell() will be called for you.
   //
+  if (!cells[row][col].hasBeenFlagged) {
+    cells[row][col].hasBeenFlagged = true
+  }
+  
 }
 
 // This function is called once for each cell when rendering the game. The row and col of the current cell is
@@ -74,35 +122,77 @@ function countAdjacentBombs(row, col) {
   // TODO: Task 4 - Adjacent bombs are bombs in cells touching our cell (also diagonally). Implement this function
   //                so that it returns the count of adjacent cells with bombs in them. 
   //
-  return 1;
+  let count = 0
+    
+  // add 3 upper cells
+  for (let c = col-1; c <= col+1; c++) {
+    if (0 <= c && c <= 9 && 0 <= row - 1 && row - 1 <= 9) {
+      if (cells[row - 1][c].isBomb) {
+        count ++
+      }
+    }
+  }
+
+  // add 2 side cells
+  if (0 <= col - 1 && col + 1 <= 9) {
+    if (cells[row][col - 1].isBomb) {
+      count ++
+    } else if (cells[row][col+1].isBomb) {
+      count ++
+    }
+  }
+
+  // add 3 bottom cells
+  for (let c = col-1; c <= col+1; c++) {
+    if (0 <= c && c <= 9 && 0 <= row + 1 && row + 1 <= 9) {
+      if (cells[row + 1][c].isBomb) {
+        count ++
+      }
+    }
+  }
+
+
+  return count;
 }
 
 function getBombsCount() {
   //
   // TODO: Task 9 - Implement stats: the counters currently always display 0, calculate and return the relevant values.
   //
-  return 0;
+  return BOMBS_COUNT;
 }
 
 function getClearedCells() {
   //
   // TODO: Task 9 - Implement stats: the counters currently always display 0, calculate and return the relevant values.
   //
-  return 0;
+  let count = 0
+  for (r = 0; r <= cells.length - 1; r++) {
+    for (c = 0; c <= cells[r].length - 1; c++) {
+      if (cells[r][c].discovered) {
+        count ++
+      }
+    }
+  }
+  return count;
 }
 
 function getTotalCellsToClear() {
   //
   // TODO: Task 9 - Implement stats: the counters currently always display 0, calculate and return the relevant values.
   //
-  return 0;
+  return 100 - BOMBS_COUNT;
 }
 
-function checkForVictory() {
+function addForVictory() {
   //
   // TODO: Task 10 - Implement victory. If the player has revealed as many cells as they must (every cell that isn't a
   //                 bomb), set variable victory to true.
   //
+  
+  if (getClearedCells() === getTotalCellsToClear()) {
+    victory = true
+  }
   return 0;
 }
 
@@ -180,13 +270,13 @@ function render() {
 }
 
 // This function gets called each time a cell is clicked. Arguments "row" and "col" will be set to the relevant
-// values. Argument "event" is used to check if the shift key was held during the click.
+// values. Argument "event" is used to add if the shift key was held during the click.
 function onCellClicked(row, col, event) {
   if (event.shiftKey) {
     flagCell(row, col);
   } else {
     discoverCell(row, col);
   }
-  checkForVictory();
+  addForVictory();
   render();
 }
