@@ -6,7 +6,7 @@ const CHEAT_REVEAL_ALL = false;
 const ROWS_COUNT = 10;
 const COLS_COUNT = 10;
 
-BOMBS_COUNT = 6
+BOMBS_COUNT = 10
 var defeat = false;
 var victory = false;
 
@@ -74,8 +74,32 @@ function discoverCell(row, col) {
   //
   // TODO: Task 6 - Discover neighbor cells recursively, as long as there are no adjacent bombs to the current cell.
   //
+  if (countAdjacentBombs(row, col) === 0) {
+    // reveal the cells on the line until meet the digited
+    for (let c = col; c >= 0; c--) {
+      // reveal
+      if (!cells[row][c].isBomb) {
+        cells[row][c].discovered = true
+      } 
+      // stop adjacent
+      if (countAdjacentBombs(row, c) !== 0) {
+        break
+      }
+    }
 
-    if (countAdjacentBombs(row, col) === 0) {
+    for (let c = col; c <= 9; c++) {
+      // reveal
+      if (!cells[row][c].isBomb) {
+        cells[row][c].discovered = true
+      }
+      
+      // stop if adjacent
+      if (countAdjacentBombs(row, c) !== 0) {
+        break
+      }
+    }
+  }
+    /* if (countAdjacentBombs(row, col) === 0) {
       
       // reveal 3 upper cells
       for (let c = col-1; c <= col+1; c++) {
@@ -96,7 +120,8 @@ function discoverCell(row, col) {
           cells[row + 1][c].discovered=true
         }
       }
-    }
+    } */
+
   }
 
   //
